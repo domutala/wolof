@@ -1,0 +1,31 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - dev
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: executing remote ssh commands
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.PROJECT_FOLDER}}
+            sudo git pull
+
+            cd ${{ secrets.PROJECT_FOLDER}}/api
+            sudo yarn
+            sudo yarn build
+
+            cd ${{ secrets.PROJECT_FOLDER}}/webapp
+            sudo yarn
+            sudo yarn build
+
+            sudo systemctl restart currencyx.api.service
+            sudo systemctl restart currencyx.webapp.service
